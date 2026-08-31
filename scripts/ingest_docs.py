@@ -5,10 +5,26 @@ from pathlib import Path
 from transformers import AutoTokenizer
 
 from src.ingestion.loader import load_all_sources
-from src.ingestion.chunker import chunk_doc
+from src.ingestion.chunker import chunk_doc, Chunk
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+
+def dedupe_chunks(chunks: list[Chunk]) -> list[Chunk]:
+    """Drop exact-duplicate chunks (same source, file, and text) that arise
+    from genuinely repeated content in the source markdown."""
+    seen = set()
+    deduped = []
+    for c in chunks:
+        key = (c.source, c.relative_path, c.text)
+        if key not in seen:
+            seen.add(key)
+            deduped.append(c)
+    dropped = len(chunks) - len(deduped)
+    if dropped:
+        logger.info(f"Dropped {dropped} exact-duplicate chunks")
+    return deduped
 
 
 def run_ingestion():
@@ -34,6 +50,9 @@ def run_ingestion():
 
     logger.info(f"Generated {len(all_chunks)} total text chunks.")
 
+    all_chunks = dedupe_chunks(all_chunks)
+    logger.info(f"{len(all_chunks)} chunks remaining after deduplication.")
+
     # Invariant & Distribution Check
     token_counts = [c.token_count for c in all_chunks]
     max_count = max(token_counts)
@@ -51,7 +70,7 @@ def run_ingestion():
     # Serialize to disk
     logger.info(f"Saving serialized chunks to {output_path}...")
     serializable_chunks = [asdict(c) for c in all_chunks]
-    
+
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(serializable_chunks, f, indent=2, ensure_ascii=False)
 
