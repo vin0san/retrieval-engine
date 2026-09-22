@@ -1,13 +1,13 @@
 # rag-hnsw-system
 
 A retrieval-augmented QA system over technical documentation, built to demonstrate 
-inference-serving and ANN systems engineering — not framework-wrapper fluency.
+inference-serving and ANN systems engineering not framework-wrapper fluency.
 
 ## Why This Project
 
 Most RAG portfolios wire together LangChain and a vector DB, which proves API 
 familiarity, not systems understanding. This project's implements HNSW from first principles to study graph-based ANN indexing and compare it against established libraries. used as the actual retrieval index, an 
-ONNX-quantized embedding pipeline, and cross-pipeline latency profiling — the same 
+ONNX-quantized embedding pipeline, and cross-pipeline latency profiling the same 
 inference-optimization focus behind my other projects (skin-lesion-onnx-api).
 
 ## What's Raw vs. What's a Library
